@@ -1,4 +1,4 @@
-name: Java CI
+name: Order Platform CI
 
 on:
   push:
