@@ -1,0 +1,21 @@
+server:
+  port: ${SERVER_PORT:8082}
+
+spring:
+  kafka:
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP:notification-service-group}
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: com.wilnan.notification_service.event
+        spring.json.value.default.type: com.wilnan.notification_service.event.OrderCreatedEvent
+        spring.json.use.type.headers: false
+    listener:
+      concurrency: ${KAFKA_LISTENER_CONCURRENCY:3}
+
+app:
+  kafka:
+    topics:
+      order-created: ${ORDER_CREATED_TOPIC:order-created}

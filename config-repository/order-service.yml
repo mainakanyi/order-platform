@@ -1,0 +1,27 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: ${JPA_SHOW_SQL:true}
+    properties:
+      hibernate:
+        format_sql: true
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      acks: ${KAFKA_ACKS:all}
+      properties:
+        spring.json.add.type.headers: false
+
+app:
+  kafka:
+    topics:
+      order-created: ${ORDER_CREATED_TOPIC:order-created}
+    topic-settings:
+      order-created:
+        partitions: ${ORDER_CREATED_PARTITIONS:3}
+        replicas: ${ORDER_CREATED_REPLICAS:3}

@@ -1,0 +1,97 @@
+diff -ruN /mnt/data/order-platform-config-server-baseline/order-platform/PATCH_NOTES.md /mnt/data/order-platform-config-server-fixed/order-platform/PATCH_NOTES.md
+--- /mnt/data/order-platform-config-server-baseline/order-platform/PATCH_NOTES.md	2026-06-30 10:02:36.000000000 +0000
++++ /mnt/data/order-platform-config-server-fixed/order-platform/PATCH_NOTES.md	2026-07-01 09:04:52.752286472 +0000
+@@ -24,3 +24,10 @@
+ ## Redis
+ 
+ Redis is not added. It is unrelated to centralized configuration and is best introduced later for a specific caching, idempotency, or rate-limiting exercise.
++
++## Config Client test bootstrap fix
++
++- Updated `OrderServiceApplicationTests` to disable Spring Cloud Config using inline test properties.
++- Updated `NotificationServiceApplicationTests` to disable Spring Cloud Config and Kafka listener startup using inline test properties.
++- This prevents `mvn clean verify` and GitHub Actions from requiring a running Config Server or Kafka cluster.
++- The existing `application-test.yml` files remain responsible for H2 and other test-only settings.
+diff -ruN /mnt/data/order-platform-config-server-baseline/order-platform/docs/TESTING_WITH_CONFIG_SERVER.md /mnt/data/order-platform-config-server-fixed/order-platform/docs/TESTING_WITH_CONFIG_SERVER.md
+--- /mnt/data/order-platform-config-server-baseline/order-platform/docs/TESTING_WITH_CONFIG_SERVER.md	1970-01-01 00:00:00.000000000 +0000
++++ /mnt/data/order-platform-config-server-fixed/order-platform/docs/TESTING_WITH_CONFIG_SERVER.md	2026-07-01 09:04:52.759469500 +0000
+@@ -0,0 +1,34 @@
++# Testing applications that use Spring Cloud Config
++
++The normal runtime applications retrieve configuration from Config Server.
++However, unit and context tests must be able to run without manually starting Config Server.
++
++Both service context tests therefore use inline Spring Boot test properties:
++
++```java
++@SpringBootTest(properties = {
++        "spring.cloud.config.enabled=false",
++        "spring.config.import=optional:configserver:http://localhost:8888"
++})
++```
++
++The notification-service test additionally prevents Kafka listeners from starting:
++
++```java
++"spring.kafka.listener.auto-startup=false"
++```
++
++The inline properties are intentional. They are available early enough to affect Spring's
++Config Data import phase, unlike relying only on profile-specific configuration loaded later.
++
++Run all tests from IntelliJ's Maven tool window or with Git Bash:
++
++```bash
++mvn clean verify
++```
++
++If the Maven Wrapper can download its configured Maven distribution, you can also use:
++
++```bash
++./mvnw clean verify
++```
+diff -ruN /mnt/data/order-platform-config-server-baseline/order-platform/notification-service/src/test/java/com/wilnan/notification_service/NotificationServiceApplicationTests.java /mnt/data/order-platform-config-server-fixed/order-platform/notification-service/src/test/java/com/wilnan/notification_service/NotificationServiceApplicationTests.java
+--- /mnt/data/order-platform-config-server-baseline/order-platform/notification-service/src/test/java/com/wilnan/notification_service/NotificationServiceApplicationTests.java	2026-06-30 09:21:33.000000000 +0000
++++ /mnt/data/order-platform-config-server-fixed/order-platform/notification-service/src/test/java/com/wilnan/notification_service/NotificationServiceApplicationTests.java	2026-07-01 09:04:52.745872776 +0000
+@@ -5,11 +5,14 @@
+ import org.springframework.test.context.ActiveProfiles;
+ 
+ @ActiveProfiles("test")
+-@SpringBootTest
++@SpringBootTest(properties = {
++        "spring.cloud.config.enabled=false",
++        "spring.config.import=optional:configserver:http://localhost:8888",
++        "spring.kafka.listener.auto-startup=false"
++})
+ class NotificationServiceApplicationTests {
+ 
+-	@Test
+-	void contextLoads() {
+-	}
+-
++    @Test
++    void contextLoads() {
++    }
+ }
+diff -ruN /mnt/data/order-platform-config-server-baseline/order-platform/order-service/src/test/java/com/wilnan/order_service/OrderServiceApplicationTests.java /mnt/data/order-platform-config-server-fixed/order-platform/order-service/src/test/java/com/wilnan/order_service/OrderServiceApplicationTests.java
+--- /mnt/data/order-platform-config-server-baseline/order-platform/order-service/src/test/java/com/wilnan/order_service/OrderServiceApplicationTests.java	2026-06-30 09:21:33.000000000 +0000
++++ /mnt/data/order-platform-config-server-fixed/order-platform/order-service/src/test/java/com/wilnan/order_service/OrderServiceApplicationTests.java	2026-07-01 09:04:52.737954368 +0000
+@@ -5,11 +5,13 @@
+ import org.springframework.test.context.ActiveProfiles;
+ 
+ @ActiveProfiles("test")
+-@SpringBootTest
++@SpringBootTest(properties = {
++        "spring.cloud.config.enabled=false",
++        "spring.config.import=optional:configserver:http://localhost:8888"
++})
+ class OrderServiceApplicationTests {
+ 
+-	@Test
+-	void contextLoads() {
+-	}
+-
++    @Test
++    void contextLoads() {
++    }
+ }

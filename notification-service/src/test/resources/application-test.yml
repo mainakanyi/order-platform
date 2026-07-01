@@ -1,0 +1,15 @@
+spring:
+  cloud:
+    config:
+      enabled: false
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: notification-service-test-group
+    listener:
+      auto-startup: false
+
+app:
+  kafka:
+    topics:
+      order-created: order-created
