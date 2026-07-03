@@ -1,0 +1,54 @@
+services:
+  config-server:
+    image: order-platform/config-server:1.0
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      SPRING_PROFILES_ACTIVE: "native"
+    volumes:
+      - ../config-repository:/app/config-repository:ro
+    restart: unless-stopped
+
+  order-service:
+    image: order-platform/order-service:1.0
+    container_name: order-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_APPLICATION_NAME: "order-service"
+      SPRING_PROFILES_ACTIVE: "docker"
+      SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
+      SPRING_CLOUD_CONFIG_URI: "http://config-server:8888"
+
+      DB_URL: "jdbc:mysql://host.docker.internal:3306/order_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Africa/Nairobi"
+      DB_USERNAME: "root"
+      DB_PASSWORD: ""
+
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka-1:29092,kafka-2:29092,kafka-3:29092"
+    depends_on:
+      - config-server
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    restart: on-failure
+
+  notification-service:
+    image: order-platform/notification-service:1.0
+    container_name: notification-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_APPLICATION_NAME: "notification-service"
+      SPRING_PROFILES_ACTIVE: "docker"
+      SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
+      SPRING_CLOUD_CONFIG_URI: "http://config-server:8888"
+
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka-1:29092,kafka-2:29092,kafka-3:29092"
+      SPRING_KAFKA_CONSUMER_GROUP_ID: "notification-service-group"
+    depends_on:
+      - config-server
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    restart: on-failure
