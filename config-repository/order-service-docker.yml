@@ -1,0 +1,14 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://host.docker.internal:3306/order_db}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+
+  kafka:
+    bootstrap-servers:
+      - kafka-1:29092
+      - kafka-2:29092
+      - kafka-3:29092
