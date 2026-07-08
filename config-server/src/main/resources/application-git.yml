@@ -3,8 +3,9 @@ spring:
     config:
       server:
         git:
-          uri: ${CONFIG_GIT_URI}
+          uri: ${CONFIG_GIT_URI:https://github.com/mainakanyi/order-platform.git}
           default-label: ${CONFIG_GIT_DEFAULT_LABEL:main}
           search-paths: ${CONFIG_GIT_SEARCH_PATHS:config-repository}
           clone-on-start: true
-          force-pull: true
+          username: ${CONFIG_GIT_USERNAME:}
+          password: ${CONFIG_GIT_TOKEN:}
